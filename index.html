@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Смешные картинки</title>
+<style>
+  body { margin: 0; font-family: system-ui, sans-serif; background: #1b1b22; color: #eee; }
+  header { text-align: center; padding: 24px 16px; font-size: 1.8em; font-weight: bold; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; padding: 16px; max-width: 1200px; margin: 0 auto; }
+  .grid img { width: 100%; border-radius: 10px; display: block; cursor: pointer; transition: transform .15s; }
+  .grid img:hover { transform: scale(1.02); }
+  #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.9); align-items: center; justify-content: center; z-index: 10; }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 95vw; max-height: 95vh; border-radius: 8px; }
+</style>
+</head>
+<body>
+<header>😂 Смешные картинки</header>
+<div class="grid" id="grid"></div>
+<div id="lightbox"><img id="big" alt=""></div>
+
+<script>
+// ===== СПИСОК КАРТИНОК =====
+// Чтобы добавить новую картинку: положи файл в папку images/
+// и добавь строку сюда (не забудь запятую в конце предыдущей строки).
+const images = [
+  "images/01.png",
+  "images/02.png",
+  "images/03.png",
+  "images/04.png",
+  "images/05.png",
+  "images/06.png",
+  "images/07.png",
+  "images/08.png",
+  "images/09.png",
+  "images/10.png",
+  "images/11.png"
+  // "images/12.png",
+];
+// ============================
+
+const grid = document.getElementById("grid");
+const lightbox = document.getElementById("lightbox");
+const big = document.getElementById("big");
+
+// новые картинки сверху
+[...images].reverse().forEach((src, i) => {
+  const img = document.createElement("img");
+  img.src = src;
+  img.loading = "lazy";
+  img.alt = "мем " + (images.length - i);
+  img.onclick = () => { big.src = src; lightbox.classList.add("open"); };
+  grid.appendChild(img);
+});
+lightbox.onclick = () => lightbox.classList.remove("open");
+</script>
+</body>
+</html>
