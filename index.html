@@ -3,57 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Смешные картинки</title>
+<title>very funny images i laughed😂😂😂</title>
 <style>
   body { margin: 0; font-family: system-ui, sans-serif; background: #1b1b22; color: #eee; }
   header { text-align: center; padding: 24px 16px; font-size: 1.8em; font-weight: bold; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; padding: 16px; max-width: 1200px; margin: 0 auto; }
-  .grid img { width: 100%; border-radius: 10px; display: block; cursor: pointer; transition: transform .15s; }
-  .grid img:hover { transform: scale(1.02); }
+  .grid img, .grid video { width: 100%; border-radius: 10px; display: block; cursor: pointer; background: #000; }
+  .grid img:hover, .grid video:hover { transform: scale(1.02); transition: transform .15s; }
+  #status { text-align: center; padding: 20px; opacity: .7; }
   #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.9); align-items: center; justify-content: center; z-index: 10; }
   #lightbox.open { display: flex; }
-  #lightbox img { max-width: 95vw; max-height: 95vh; border-radius: 8px; }
+  #lightbox img, #lightbox video { max-width: 95vw; max-height: 95vh; border-radius: 8px; }
 </style>
 </head>
 <body>
-<header> 12345678910</header>
+<header>😂 Смешные картинки</header>
 <div class="grid" id="grid"></div>
-<div id="lightbox"><img id="big" alt=""></div>
-
+<div id="status">Загрузка...</div>
+<div id="lightbox"></div>
 <script>
-
-// Чтобы добавить новую картинку: положи файл в папку images/
-// и добавь строку сюда (не забудь запятую в конце предыдущей строки).
-const images = [
-  "images/01.png",
-  "images/02.png",
-  "images/03.png",
-  "images/04.png",
-  "images/05.png",
-  "images/06.png",
-  "images/07.png",
-  "images/08.png",
-  "images/09.png",
-  "images/10.png",
-  "images/11.png"
-  // "images/12.png",
-];
-
+const OWNER = "fawuna";
+const REPO = "mysuperwebsite";
+const DIR = "images";
+const API = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/" + DIR;
+const VIDEO = /\.(mp4|webm|mov|m4v)$/i;
+const IMAGE = /\.(png|jpe?g|gif|webp|avif|bmp)$/i;
 
 const grid = document.getElementById("grid");
 const lightbox = document.getElementById("lightbox");
-const big = document.getElementById("big");
+const status = document.getElementById("status");
 
-
-[...images].reverse().forEach((src, i) => {
+function makeMedia(file, inLightbox) {
+  if (VIDEO.test(file.name)) {
+    const v = document.createElement("video");
+    v.src = file.download_url;
+    v.controls = true;
+    v.playsInline = true;
+    v.preload = "metadata";
+    if (!inLightbox) {
+      v.muted = true;
+      v.loop = true;
+      v.addEventListener("click", () => openBox(file));
+    }
+    return v;
+  }
   const img = document.createElement("img");
-  img.src = src;
+  img.src = file.download_url;
+  img.alt = "";
   img.loading = "lazy";
-  img.alt = "мем " + (images.length - i);
-  img.onclick = () => { big.src = src; lightbox.classList.add("open"); };
-  grid.appendChild(img);
+  if (!inLightbox) img.addEventListener("click", () => openBox(file));
+  return img;
+}
+
+function openBox(file) {
+  lightbox.innerHTML = "";
+  const media = makeMedia(file, true);
+  media.addEventListener("click", e => e.stopPropagation());
+  lightbox.appendChild(media);
+  lightbox.classList.add("open");
+  if (media.tagName === "VIDEO") media.play();
+}
+
+lightbox.addEventListener("click", () => {
+  lightbox.classList.remove("open");
+  lightbox.innerHTML = "";
 });
-lightbox.onclick = () => lightbox.classList.remove("open");
+
+async function load() {
+  try {
+    const res = await fetch(API);
+    if (!res.ok) throw new Error("GitHub " + res.status);
+    const files = await res.json();
+    const media = files
+      .filter(f => f.type === "file" && (VIDEO.test(f.name) || IMAGE.test(f.name)))
+      .sort((a, b) => b.name.localeCompare(a.name, undefined, { numeric: true }));
+    status.remove();
+    if (media.length === 0) {
+      status.textContent = "Пока пусто";
+      document.body.appendChild(status);
+      return;
+    }
+    media.forEach(f => grid.appendChild(makeMedia(f, false)));
+  } catch (err) {
+    status.textContent = "Не удалось загрузить картинки. Попробуй обновить страницу через минуту.";
+  }
+}
+
+load();
 </script>
 </body>
 </html>
